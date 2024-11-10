@@ -12,8 +12,25 @@ import mlx.core as mx
 from mlx.optimizers import Optimizer
 
 
-"""Implementes ADOPT optimizer."""
 class ADOPT(Optimizer):
+    r"""The ADOPT optimizer. [1].
+
+    Implementation of ADOPT optimizer following algorithm 2 of the original
+    paper.
+
+    [1]: Shohei Taniguchi et al., 2024. ADOPT: Modified Adam Can Converge with
+    Any :math:`\beta_2` with the Optimal Rate. NeurIPS 2024
+
+    Args:
+        learning_rate (float or callable): The learning rate :math:`\lambda`.
+          Default: ``1e-3``
+        betas (Tuple[float, float], optional): The coefficients
+          :math:`(\beta_1, \beta_2)` used for computing running averages of the
+          gradient and its square. Default: ``(0.9, 0.9999)``
+        eps (float, optional): The term :math:`\epsilon` added to the
+          denominator to improve numerical stability. Default: ``1e-6``
+    """
+
     def __init__(
         self,
         learning_rate: Union[float, Callable[[mx.array], mx.array]] = 1e-3,
@@ -56,8 +73,26 @@ class ADOPT(Optimizer):
         return parameter - lr * m
 
 
-"""Implementes ADOPT optimizer with weight decay."""
 class ADOPTw(ADOPT):
+    r"""The ADOPT optimizer with weight decay. [1].
+
+    Implementation of ADOPT optimizer following algorithm 2 of the original
+    paper.
+
+    [1]: Shohei Taniguchi et al., 2024. ADOPT: Modified Adam Can Converge with
+    Any :math:`\beta_2` with the Optimal Rate. NeurIPS 2024
+
+    Args:
+        learning_rate (float or callable): The learning rate :math:`\lambda`.
+          Default: ``1e-3``
+        betas (Tuple[float, float], optional): The coefficients
+          :math:`(\beta_1, \beta_2)` used for computing running averages of the
+          gradient and its square. Default: ``(0.9, 0.9999)``
+        eps (float, optional): The term :math:`\epsilon` added to the
+          denominator to improve numerical stability. Default: ``1e-6``
+        weight_decay (float, optional): Default: ``0.0``
+    """
+
     def __init__(
         self,
         learning_rate: Union[float, Callable[[mx.array], mx.array]] = 1e-3,
