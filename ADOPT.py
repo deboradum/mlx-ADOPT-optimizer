@@ -54,3 +54,25 @@ class ADOPT(Optimizer):
         state["t"] += 1
 
         return parameter - lr * m
+
+
+"""Implementes ADOPT optimizer with weight decay."""
+class ADOPTw(ADOPT):
+    def __init__(
+        self,
+        learning_rate: Union[float, Callable[[mx.array], mx.array]] = 1e-3,
+        betas: List[float] = [0.9, 0.9999],
+        eps: float = 1e-6,
+        weight_decay: float = 0.0,
+    ):
+        super().__init__(learning_rate=learning_rate, betas=betas, eps=eps)
+        self.weight_decay = weight_decay
+
+    def apply_single(self, gradient: mx.array, parameter: mx.array, state: dict):
+        """Performs the ADOPT parameter update and stores :math:`v` and
+        :math:`m` in the optimizer state."""
+
+        lr = self.learning_rate.astype(gradient.dtype)
+        return super().apply_single(
+            gradient, parameter * (1 - lr * self.weight_decay), state
+        )
