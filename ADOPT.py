@@ -34,6 +34,6 @@ class ADOPT(Optimizer):
         # TODO
 
     def apply_single(self, gradient: mx.array, parameter: mx.array, state: dict):
-        """Performs the Adam parameter update and stores :math:`v` and
+        """Performs the ADOPT parameter update and stores :math:`v` and
         :math:`m` in the optimizer state."""
         # TODO
