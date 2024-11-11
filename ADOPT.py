@@ -45,7 +45,7 @@ class ADOPT(Optimizer):
     def init_single(self, parameter: mx.array, state: dict):
         """Initialize optimizer state"""
         state["m"] = mx.zeros_like(parameter)
-        state["v"] = mx.zeros_like(parameter)
+        state["v"] = mx.ones_like(parameter)  # https://twitter.com/ishohei220/status/1855399877892870377?s=12
         state["t"] = 1
 
     def apply_single(self, gradient: mx.array, parameter: mx.array, state: dict):
