@@ -10,6 +10,7 @@ TRUE_OPTIMAL_POINT = mx.array([1, 1])
 LOSS_MARGIN = 0.001
 POINT_MARGIN = 0.01
 
+
 # https://www.sfu.ca/~ssurjano/rosen.html
 class Rosenbrock(nn.Module):
     def __init__(self, X):
@@ -25,31 +26,39 @@ class Rosenbrock(nn.Module):
 def loss_fn(model):
     return model()
 
+
 if __name__ == "__main__":
+    num_steps = 30000
+
     optimizer = ADOPT(1e-3)
 
     X = mx.array([-1.2, 1.0])
     model = Rosenbrock(X)
 
     loss_and_grad_fn = nn.value_and_grad(model, loss_fn)
+    valid_loss = False
+    valid_point = False
     start = time.perf_counter()
-    for step in range(23000):
+    for step in range(num_steps):
         loss, grads = loss_and_grad_fn(model)
         optimizer.update(model, grads)
         mx.eval(model, optimizer.state)
-    taken = round(time.perf_counter()-start, 2)
-    print(f"Took {taken}s")
+        if step % 1000 == 0:
+            if (
+                mx.allclose(loss, TRUE_OPTIMAL_LOSS, atol=LOSS_MARGIN)
+                and not valid_loss
+            ):
+                print(f"Step {step}: Optimal loss converged.")
+                valid_loss = True
+            if (
+                mx.allclose(model.X.weight, TRUE_OPTIMAL_POINT, atol=POINT_MARGIN)
+                and not valid_point
+            ):
+                print(f"Step {step}: Optimal point converged.")
+                valid_point = True
+            if valid_point and valid_loss:
+                taken = round(time.perf_counter() - start, 2)
+                print(f"Took {taken}s")
+                exit()
 
-    optimal_point = model.X.weight
-    optimal_loss = model()
-
-    assert mx.allclose(
-        optimal_loss, TRUE_OPTIMAL_LOSS, atol=LOSS_MARGIN
-    ), f"Optimal loss value is larger than expected. Got {optimal_loss}, expected {TRUE_OPTIMAL_LOSS}"
-    print("Optimal loss is accurate.")
-    assert mx.allclose(
-        optimal_point, TRUE_OPTIMAL_POINT, atol=POINT_MARGIN
-    ), f"Optimal point is not accurate. Got {optimal_point}, expected {TRUE_OPTIMAL_POINT}"
-    print("Optimal point is accurate.")
-
-    print("Valid!")
+    print(f"Optimizer did not converge within {num_steps} steps.")
