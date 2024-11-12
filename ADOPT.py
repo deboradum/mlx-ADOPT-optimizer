@@ -36,16 +36,20 @@ class ADOPT(Optimizer):
         learning_rate: Union[float, Callable[[mx.array], mx.array]] = 1e-3,
         betas: List[float] = [0.9, 0.9999],
         eps: float = 1e-6,
+        beta_decay: bool = False,
     ):
         super().__init__()
         self._maybe_schedule("learning_rate", learning_rate)
         self.betas = betas
         self.eps = eps
+        self.beta_decay = beta_decay
 
     def init_single(self, parameter: mx.array, state: dict):
         """Initialize optimizer state"""
         state["m"] = mx.zeros_like(parameter)
-        state["v"] = mx.ones_like(parameter)  # https://twitter.com/ishohei220/status/1855399877892870377?s=12
+        state["v"] = mx.ones_like(
+            parameter
+        )  # https://twitter.com/ishohei220/status/1855399877892870377?s=12
         state["t"] = 1
 
     def apply_single(self, gradient: mx.array, parameter: mx.array, state: dict):
@@ -58,6 +62,9 @@ class ADOPT(Optimizer):
         m = state["m"]
         v = state["v"]
         t = state["t"]
+
+        if self.beta_decay:
+            b1 = b1 / t
 
         if t == 1:
             m = gradient / mx.maximum(mx.sqrt(v), eps)
@@ -99,8 +106,11 @@ class ADOPTw(ADOPT):
         betas: List[float] = [0.9, 0.9999],
         eps: float = 1e-6,
         weight_decay: float = 0.0,
+        beta_decay: bool = False,
     ):
-        super().__init__(learning_rate=learning_rate, betas=betas, eps=eps)
+        super().__init__(
+            learning_rate=learning_rate, betas=betas, eps=eps, beta_decay=beta_decay
+        )
         self.weight_decay = weight_decay
 
     def apply_single(self, gradient: mx.array, parameter: mx.array, state: dict):
