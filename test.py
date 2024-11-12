@@ -11,7 +11,7 @@ from ADOPT import ADOPT, ADOPTw
 PI = 3.1415926535
 
 
-class Test:
+class OptimizerTest:
     def __init__(self):
         raise NotImplementedError
         # self.true_optimal_loss =
@@ -80,7 +80,7 @@ class Rosenbrock(nn.Module):
         return (1 - x1) ** 2 + 100 * (x2 - x1**2) ** 2
 
 
-class RosenbrockTest(Test):
+class RosenbrockTest(OptimizerTest):
     def __init__(self):
         self.true_optimal_loss = mx.array(0).astype(mx.float32)
         self.true_optimal_point = mx.array([1, 1])
@@ -104,7 +104,7 @@ class Rastrigin(nn.Module):
         )
 
 
-class RastriginTest(Test):
+class RastriginTest(OptimizerTest):
     def __init__(self, n):
         self.true_optimal_loss = mx.array(0).astype(mx.float32)
         self.true_optimal_point = mx.zeros(n)
