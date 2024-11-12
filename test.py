@@ -5,7 +5,7 @@ import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
 
-from ADOPT import ADOPT
+from ADOPT import ADOPT, ADOPTw
 
 TRUE_OPTIMAL_LOSS = mx.array(0).astype(mx.float32)
 TRUE_OPTIMAL_POINT = mx.array([1, 1])
@@ -32,8 +32,10 @@ def loss_fn(model):
 def get_optimizer():
     supported_optimizers = {
         "adopt": ADOPT,
+        "adoptw": ADOPTw,
         "adam": optim.Adam,
         "adagrad": optim.Adagrad,
+        "sgd": optim.SGD,
     }
     parser = argparse.ArgumentParser()
     parser.add_argument("optimizer", type=str)
@@ -84,9 +86,16 @@ if __name__ == "__main__":
                 print(f"Step {step}: Optimal point converged.")
                 valid_point = True
             if valid_point and valid_loss:
-                taken = round(time.perf_counter() - start, 2)
-                print(f"Took {taken}s")
                 break
 
     if not valid_point or not valid_loss:
+        x, y = model.X.weight
+        ex, ey = TRUE_OPTIMAL_POINT
         print(f"Optimizer did not converge within {num_steps} steps.")
+        if not valid_point:
+            print(f"Final point: ({x}, {y}). Expected ({ex}, {ey})")
+        if not valid_loss:
+            print(f"Final loss: {loss}. Expected {TRUE_OPTIMAL_LOSS}")
+
+    taken = round(time.perf_counter() - start, 2)
+    print(f"Took {taken}s")
