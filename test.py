@@ -1,7 +1,9 @@
 import time
+import argparse
 
 import mlx.core as mx
 import mlx.nn as nn
+import mlx.optimizers as optim
 
 from ADOPT import ADOPT
 
@@ -27,11 +29,36 @@ def loss_fn(model):
     return model()
 
 
+def get_optimizer():
+    supported_optimizers = {
+        "adopt": ADOPT,
+        "adam": optim.Adam,
+        "adagrad": optim.Adagrad,
+    }
+    parser = argparse.ArgumentParser()
+    parser.add_argument("optimizer", type=str)
+    parser.add_argument("lr", type=str)
+    args = parser.parse_args()
+
+    o = args.optimizer
+    lr = float(args.lr)
+
+    try:
+        optimizer = supported_optimizers[o](lr)
+        print(f"Testing {o} with a learning rate of {lr}")
+        return optimizer
+    except KeyError:
+        print(
+            f"Optimizer {o} is not supported, please pick one of the following:",
+            ", ".join(supported_optimizers.keys()),
+        )
+        exit()
+
+
 if __name__ == "__main__":
     num_steps = 30000
 
-    optimizer = ADOPT(1e-3)
-
+    optimizer = get_optimizer()
     X = mx.array([-1.2, 1.0])
     model = Rosenbrock(X)
 
@@ -59,6 +86,7 @@ if __name__ == "__main__":
             if valid_point and valid_loss:
                 taken = round(time.perf_counter() - start, 2)
                 print(f"Took {taken}s")
-                exit()
+                break
 
-    print(f"Optimizer did not converge within {num_steps} steps.")
+    if not valid_point or not valid_loss:
+        print(f"Optimizer did not converge within {num_steps} steps.")
