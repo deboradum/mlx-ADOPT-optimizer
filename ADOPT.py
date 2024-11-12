@@ -1,7 +1,7 @@
 # Unofficial MLX implementation of ADOPT optimizer
 # https://arxiv.org/abs/2411.02853
 #
-#  Written by Pepijn van Wijk
+# Written by Pepijn van Wijk
 # https://github.com/deboradum
 #
 # Apache-2.0 license
@@ -29,6 +29,8 @@ class ADOPT(Optimizer):
           gradient and its square. Default: ``(0.9, 0.9999)``
         eps (float, optional): The term :math:`\epsilon` added to the
           denominator to improve numerical stability. Default: ``1e-6``
+        beta_decay (bool, optional): whether or not to use Beta 1 decay.
+          Default: False.
     """
 
     def __init__(
@@ -98,6 +100,8 @@ class ADOPTw(ADOPT):
         eps (float, optional): The term :math:`\epsilon` added to the
           denominator to improve numerical stability. Default: ``1e-6``
         weight_decay (float, optional): Default: ``0.0``
+        beta_decay (bool, optional): whether or not to use Beta 1 decay.
+          Default: False.
     """
 
     def __init__(
