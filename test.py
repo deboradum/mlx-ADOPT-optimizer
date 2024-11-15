@@ -114,6 +114,32 @@ class RastriginTest(OptimizerTest):
         self.model = Rastrigin(initial)
 
 
+# https://www.sfu.ca/~ssurjano/ackley.html
+class Ackley(nn.Module):
+    def __init__(self, initial=mx.array([0.62, -0.59])):
+        super().__init__()
+        self.X = nn.Linear(1, 2, False)
+        self.X.weight = initial
+
+    def __call__(self):
+        x1, x2 = self.X.weight
+        return (
+            -20 * mx.exp(-0.2 * mx.sqrt(0.5 * (x1**2 + x2**2)))
+            - mx.exp(0.5 * (mx.cos(2 * pi * x1) + mx.cos(2 * pi * x2)))
+            + e
+            + 20
+        )
+
+
+class AckleyTest(OptimizerTest):
+    def __init__(self, initial=mx.array([0.62, -0.59])):
+        self.true_optimal_loss = mx.array(0)
+        self.true_optimal_point = mx.array([0, 0])
+        self.loss_margin = 0.001
+        self.point_margin = 0.01
+        self.model = Ackley(initial)
+
+
 def get_optimizer():
     supported_optimizers = {
         "adopt": ADOPT,
