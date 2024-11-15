@@ -1,6 +1,9 @@
 import time
 import argparse
 
+from numpy import e
+from numpy import pi
+
 import numpy as np
 import mlx.core as mx
 import mlx.nn as nn
@@ -8,16 +11,14 @@ import mlx.optimizers as optim
 
 from ADOPT import ADOPT, ADOPTw
 
-PI = 3.1415926535
-
 
 class OptimizerTest:
     def __init__(self):
-        raise NotImplementedError
         # self.true_optimal_loss =
         # self.true_optimal_point =
         # self.loss_margin =
         # self.point_margin =
+        raise NotImplementedError
 
     def loss_fn(self):
         return self.model()
@@ -36,7 +37,7 @@ class OptimizerTest:
                     mx.allclose(loss, self.true_optimal_loss, atol=self.loss_margin)
                     and not valid_loss
                 ):
-                    print(f"Step {step}: Optimal loss converged.")
+                    print(f"\tStep {step}: Optimal loss converged.")
                     valid_loss = True
                 if (
                     mx.allclose(
@@ -46,34 +47,34 @@ class OptimizerTest:
                     )
                     and not valid_point
                 ):
-                    print(f"Step {step}: Optimal point converged.")
+                    print(f"\tStep {step}: Optimal point converged.")
                     valid_point = True
                 if valid_point and valid_loss:
                     break
 
         if not valid_point or not valid_loss:
-            print(f"Optimizer did not converge within {num_steps} steps.")
+            print(f"\tOptimizer did not converge within {num_steps} steps.")
 
             point = [str(x) for x in np.array(self.model.X.weight)]
             opt_point = [str(x) for x in np.array(self.true_optimal_point)]
 
             if not valid_point:
                 print(
-                    f"Final point: ({', '.join(str(x) for x in point)}). Expected ({', '.join(opt_point)})",
+                    f"\tFinal point: ({', '.join(str(x) for x in point)}). Expected ({', '.join(opt_point)})",
                 )
             if not valid_loss:
-                print(f"Final loss: {loss}. Expected {self.true_optimal_loss}")
+                print(f"\tFinal loss: {loss}. Expected {self.true_optimal_loss}")
 
         taken = round(time.perf_counter() - start, 2)
-        print(f"Took {taken}s")
+        print(f"\tTook {taken}s")
 
 
 # https://www.sfu.ca/~ssurjano/rosen.html
 class Rosenbrock(nn.Module):
-    def __init__(self):
+    def __init__(self, initial=mx.array([-1.2, 1.0])):
         super().__init__()
         self.X = nn.Linear(1, 2, False)
-        self.X.weight = mx.array([-1.2, 1.0])
+        self.X.weight = initial
 
     def __call__(self):
         x1, x2 = self.X.weight
@@ -81,9 +82,9 @@ class Rosenbrock(nn.Module):
 
 
 class RosenbrockTest(OptimizerTest):
-    def __init__(self):
-        self.true_optimal_loss = mx.array(0).astype(mx.float32)
-        self.true_optimal_point = mx.array([1, 1])
+    def __init__(self, initial=mx.array([-1.2, 1.0])):
+        self.true_optimal_loss = mx.array(0)
+        self.true_optimal_point = mx.ones_like(initial)
         self.loss_margin = 0.001
         self.point_margin = 0.01
         self.model = Rosenbrock()
@@ -91,26 +92,26 @@ class RosenbrockTest(OptimizerTest):
 
 # https://www.sfu.ca/~ssurjano/rastr.html
 class Rastrigin(nn.Module):
-    def __init__(self, n):
+    def __init__(self, initial=mx.array([0.5, -0.3, 0.49, -0.4, -0.12])):
         super().__init__()
-        self.n = n
-        init_fn = nn.init.uniform(-5.12, 5.12)
-        self.X = nn.Linear(1, n, False)
-        self.X.weight = init_fn(mx.zeros_like(self.X.weight))
+        self.n = initial.size
+        self.X = nn.Linear(1, self.n, False)
+        self.X.weight = initial
 
     def __call__(self):
-        return 10 * self.n + mx.sum(
-            mx.square(self.X.weight) - 10 * mx.cos(2 * PI * self.X.weight)
+        A = 10
+        return A * self.n + mx.sum(
+            mx.square(self.X.weight) - A * mx.cos(2 * pi * self.X.weight)
         )
 
 
 class RastriginTest(OptimizerTest):
-    def __init__(self, n):
-        self.true_optimal_loss = mx.array(0).astype(mx.float32)
-        self.true_optimal_point = mx.zeros(n)
+    def __init__(self, initial=mx.array([0.5, -0.3, 0.49, -0.4, -0.12])):
+        self.true_optimal_loss = mx.array(0)
+        self.true_optimal_point = mx.zeros_like(initial)
         self.loss_margin = 0.001
-        self.point_margin = 0.01
-        self.model = Rastrigin(4)
+        self.point_margin = 0.001
+        self.model = Rastrigin(initial)
 
 
 def get_optimizer():
@@ -143,12 +144,12 @@ def get_optimizer():
 
 if __name__ == "__main__":
     mx.random.seed(42)
-    num_steps = 30000
+    num_steps = 20000
 
     optimizer = get_optimizer()
     rosenbrokTests = RosenbrockTest()
-    rosenbrokTests.test(optimizer, 20000)
+    rosenbrokTests.test(optimizer, num_steps)
 
     optimizer = get_optimizer()
-    rastriginTest = RastriginTest(5)
-    rastriginTest.test(optimizer, 20000)
+    rastriginTest = RastriginTest()
+    rastriginTest.test(optimizer, num_steps)
