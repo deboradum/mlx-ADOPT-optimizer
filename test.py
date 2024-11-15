@@ -1,5 +1,6 @@
 import time
 import argparse
+from copy import deepcopy
 
 from numpy import e
 from numpy import pi
@@ -18,6 +19,7 @@ class OptimizerTest:
         # self.true_optimal_point =
         # self.loss_margin =
         # self.point_margin =
+        # self.name =
         raise NotImplementedError
 
     def loss_fn(self):
@@ -68,6 +70,9 @@ class OptimizerTest:
         taken = round(time.perf_counter() - start, 2)
         print(f"\tTook {taken}s")
 
+    def print_info(self):
+        print(f"Testing {self.name} function...")
+
 
 # https://www.sfu.ca/~ssurjano/rosen.html
 class Rosenbrock(nn.Module):
@@ -88,6 +93,7 @@ class RosenbrockTest(OptimizerTest):
         self.loss_margin = 0.001
         self.point_margin = 0.01
         self.model = Rosenbrock()
+        self.name = "Rosenbrock"
 
 
 # https://www.sfu.ca/~ssurjano/rastr.html
@@ -112,6 +118,7 @@ class RastriginTest(OptimizerTest):
         self.loss_margin = 0.001
         self.point_margin = 0.001
         self.model = Rastrigin(initial)
+        self.name = "Rastrigin"
 
 
 # https://www.sfu.ca/~ssurjano/ackley.html
@@ -138,6 +145,7 @@ class AckleyTest(OptimizerTest):
         self.loss_margin = 0.001
         self.point_margin = 0.01
         self.model = Ackley(initial)
+        self.name = "Ackley"
 
 
 def get_optimizer():
@@ -163,7 +171,7 @@ def get_optimizer():
             optimizer = supported_optimizers[o](lr, beta_decay=True)
         else:
             optimizer = supported_optimizers[o](lr)
-        print(f"Testing {o} with a learning rate of {lr}")
+        print(f"Testing {o} with a learning rate of {lr}\n")
         return optimizer
     except KeyError:
         print(
@@ -178,9 +186,12 @@ if __name__ == "__main__":
     num_steps = 20000
 
     optimizer = get_optimizer()
-    rosenbrokTests = RosenbrockTest()
-    rosenbrokTests.test(optimizer, num_steps)
 
-    optimizer = get_optimizer()
-    rastriginTest = RastriginTest()
-    rastriginTest.test(optimizer, num_steps)
+    for fun_test in [
+        RosenbrockTest(),
+        RastriginTest(),
+        AckleyTest(),
+    ]:
+        o = deepcopy(optimizer)
+        fun_test.print_info()
+        fun_test.test(o, num_steps)
