@@ -144,6 +144,7 @@ def get_optimizer():
     supported_optimizers = {
         "adopt": ADOPT,
         "adoptw": ADOPTw,
+        "adopt_b1": ADOPT,
         "adam": optim.Adam,
         "adagrad": optim.Adagrad,
         "sgd": optim.SGD,
@@ -157,7 +158,11 @@ def get_optimizer():
     lr = float(args.lr)
 
     try:
-        optimizer = supported_optimizers[o](lr)
+        # I wanted to try out adopt with beta 1 decay
+        if "_b1" in o:
+            optimizer = supported_optimizers[o](lr, beta_decay=True)
+        else:
+            optimizer = supported_optimizers[o](lr)
         print(f"Testing {o} with a learning rate of {lr}")
         return optimizer
     except KeyError:
